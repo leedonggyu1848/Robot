@@ -116,7 +116,7 @@ end
 
 % Calculate setting
 cur = [0, 0, 0, 0, 0];
-tars = [360, 90, 0, 90, 0;];
+tars = [360, 90, 0, 90, 60;];
 [ros, cols] = size(tars);
 speed = 0.5;
 
