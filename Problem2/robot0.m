@@ -2,7 +2,7 @@ clc;
 clear all;
 close all; 
 
-% base homogeneous matrix
+% Base homogeneous matrix
 function h=transX(d)
     h = [
         1, 0, 0, d;
@@ -39,33 +39,34 @@ function h=rotZ(a)
     ];
 end
 
-% calulate
+% Calculate DH transform
 function h = calDHTransform(theta, d, a, alpha)
     h = rotZ(theta) * transZ(d) * transX(a) * rotX(alpha);
 end
 
-% function
+% Functions
 function rst = isSame(a, b)
  rst = abs(a - b) < 0.5;
 end
 
-% configuration figure
+% Configuration figure
 hfig = figure(1);
 grid on;
 axis equal;
-axis([-10, 10, -10, 10]);
+axis_max = 10;
+axis([-axis_max, axis_max, -axis_max, axis_max]);
 
 link = gobjects(1, 2);
 for i = 1:2
     link(i) = line([inf, inf], [inf, inf]);
-    set (link(i), 'color', 'g', 'linewidth', 7);
+    set (link(i), 'Color', 'g', 'LineWidth', 7);
 end
 
 dot = gobjects(1, 3);
 for i = 1:3
     dot(i) = line(inf, inf);
-    set(dot(i),'marker', 'o', 'markersize', 10,...
-    'markeredgecolor', 'k', 'markerfacecolor', 'k');
+    set(dot(i),'Marker', 'o', 'MarkerSize', 10,...
+    'MarkerEdgeColor', 'k', 'MarkerFaceColor', 'k');
 end
 
 % calculate setting
@@ -89,11 +90,11 @@ for t=1:ros
         p{3} = a{1} * a{2} * p{1};
     
         for i = 1:3
-            set(dot(i), 'xdata', p{i}(1), 'ydata', p{i}(2));
+            set(dot(i), 'XData', p{i}(1), 'YData', p{i}(2));
         end
         for i = 1:2
-            set(link(i), 'xdata', [p{i}(1), p{i+1}(1)],...
-                'ydata', [p{i}(2), p{i+1}(2)]);
+            set(link(i), 'XData', [p{i}(1), p{i+1}(1)],...
+                'YData', [p{i}(2), p{i+1}(2)]);
         end
 
         drawnow;
