@@ -55,7 +55,6 @@ grid on;
 axis equal;
 axis([-10, 10, -10, 10]);
 
-% initialize
 link = gobjects(1, 2);
 for i = 1:2
     link(i) = line([inf, inf], [inf, inf]);
@@ -81,12 +80,13 @@ speed = 0.5;
 for t=1:ros
     while ~isSame(cur(1), tars(t,1)) || ~isSame(cur(2), tars(t,2))
         % DH parameter
-        t01 = calDHTransform(deg2rad(cur(1)), 0, 2, 0);
-        t12 = calDHTransform(deg2rad(cur(2)), 0, 3, 0);
+        a = {};
+        a{1} = calDHTransform(deg2rad(cur(1)), 0, 2, 0);
+        a{2} = calDHTransform(deg2rad(cur(2)), 0, 3, 0);
         p = {};
         p{1} = [0, 0, 0, 1].';
-        p{2} = t01 * p{1};
-        p{3} = t01 * t12 * p{1};
+        p{2} = a{1} * p{1};
+        p{3} = a{1} * a{2} * p{1};
     
         for i = 1:3
             set(dot(i), 'xdata', p{i}(1), 'ydata', p{i}(2));
