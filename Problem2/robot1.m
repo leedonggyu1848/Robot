@@ -49,6 +49,16 @@ function rst = isSame(a, b)
     rst = abs(a - b) < 0.5;
 end
 
+function rst = isAllSame(a, b, n)
+    rst = true;
+    for i=1:n
+        if (~isSame(a(i), b(i)))
+            rst = false;
+            return
+        end
+    end
+end
+
 % Draw a box
 function h = drawBox(p1, p2, width)
     % p1, p2 are 3D points [x, y, z], width is the box thickness
@@ -121,7 +131,7 @@ tars = [360, 90, 0, 90, 60;];
 speed = 0.5;
 
 for t = 1:ros
-    while ~isSame(cur(1), tars(t, 1)) || ~isSame(cur(2), tars(t, 2))
+    while ~isAllSame(cur, tars(t, :), 5)
         % DH parameter
         a = {};
         a{1} = calDHTransform(deg2rad(cur(1)), 2, 0, deg2rad(90));
