@@ -4,6 +4,7 @@ close all;
 
 % Calculate DH transform
 function h = calDHTransform(az, ay, ax, dx, dy, dz)
+
     roll = [cos(az), -sin(az), 0;
             sin(az), cos(az), 0;
             0, 0, 1];
@@ -13,6 +14,7 @@ function h = calDHTransform(az, ay, ax, dx, dy, dz)
     yaw = [1, 0, 0;
            0, cos(ax), -sin(ax);
            0, sin(ax), cos(ax)];
+
     R = roll * pitch * yaw;
     d = [dx, dy, dz].';
     h = [R, d;

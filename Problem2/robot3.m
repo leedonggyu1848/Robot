@@ -128,10 +128,10 @@ end
 
 % Calculate setting
 cur = [0, 0];
-tars = [120, 60; 240, 0; 360, -60];
+tars = [120, 60; 240, 0; 360, -60;480, 60; 600, 0; 720, -60];
 [~ ,nparam] = size(cur);
 [ntar, ~] = size(tars);
-speed = 0.5;
+speed = 2;
 
 for t = 1:ntar
     while ~isAllSame(cur, tars(t, :), nparam)
