@@ -13,7 +13,7 @@ eta = 0.03;     % repulsive tunning paramter
 
 
 % calculate force function
-function force = cal_attractive(q, q_goal, epsilon, zeta)
+function force = calAttractive(q, q_goal, epsilon, zeta)
     % pre-calculating values
     diff = q - q_goal;
     norm_diff = norm(diff);
@@ -27,7 +27,7 @@ function force = cal_attractive(q, q_goal, epsilon, zeta)
     end
 end
 
-function force = cal_repulsive(q, o, n_o, delta, eta)
+function force = calRepulsive(q, o, n_o, delta, eta)
     [~, col] = size(q);
     force = zeros(1, col);
     for i=1:n_o
@@ -98,8 +98,27 @@ end
 cur_tri = fill3(cur_wp(:, 1), cur_wp(:, 2), cur_wp(:, 3), 'b');
 goal_tri = fill3(goal_wp(:, 1), goal_wp(:, 2), goal_wp(:, 3), 'g');
 
+% configuration point
+syms ax ay az dx dy dz;
+cur_cp = [0, 0, 0, 0, 0, 0]; % ax, ay, az, dx, dy, dz
+h = calRotation(ax, ay, az, dx, dy, dz);
+cur_wx = h * [cur_wp.'; ones(1,3)];
+cur_wx = cur_wx(1:3, :).';
+x_jaco = {jacobian(cur_wx(1,:), [ax, ay, az, dx, dy, dz]),...
+     jacobian(cur_wx(2,:), [ax, ay, az, dx, dy, dz]),...
+     jacobian(cur_wx(3,:), [ax, ay, az, dx, dy, dz])};
+
 while ~isReached(cur_wp, goal_wp)
+    cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp));
     set(cur_tri, 'XData', cur_wp(:, 1), 'YData', cur_wp(:, 2), 'ZData', cur_wp(:, 3));
     drawnow;
     
+    force = zeros(6, 1);
+    for i=1:3
+        jaco = subs(x_jaco{i}, [ax, ay, az, dx, dy, dz], cur_cp);
+        force = force + jaco.' * calAttractive(cur_wp(i,:), goal_wp(i,:), epsilon, zeta).';
+        force = force + jaco.' * calRepulsive(cur_wp(i,:), obstacles, obstacles_size, delta, eta).';
+        force = vpa(force);
+    end
+    cur_cp = cur_cp + force.';
 end
