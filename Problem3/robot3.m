@@ -2,20 +2,20 @@ clc;
 clear all;
 close all;
 
-start = [-7, -7, -7];
-goal = [7, 7, 7];
-obstacles = [3,3,3; 1,2,3; 4,5,6; -1,-2,-3];
-vec_tri_point = [0, 3, 0; -1, 0, 0; 1, 0, 0];
-epsilon = 0.5; % attractive distance
-zeta = 0.01;    % attractive tunning parameter
-delta = 3;   % repulsive distance
-eta = 0.03;     % repulsive tunning paramter
+start = [-7, -7, -7].';
+goal = [7, 7, 7].';
+obstacles = [[1,2,3].', [4,10,-7].', [-6, -6, -6].', [-6, -3, -7].'];
+tri_vec = [[0, 3, 0].', [-1, 0, 0].', [1, 0, 0].'];
+epsilon = 0.05; % attractive distance
+zeta = 0.1;    % attractive tunning parameter
+delta = 0.05;   % repulsive distance
+eta = 0.05;     % repulsive tunning paramter
 
 
-% calculate force function
-function force = calAttractive(q, q_goal, epsilon, zeta)
+% calculating force function
+function force = calAttractive(cur_wp, goal_wp, epsilon, zeta)
     % pre-calculating values
-    diff = q - q_goal;
+    diff = cur_wp - goal_wp;
     norm_diff = norm(diff);
     
     if norm_diff > epsilon
@@ -27,11 +27,12 @@ function force = calAttractive(q, q_goal, epsilon, zeta)
     end
 end
 
-function force = calRepulsive(q, o, n_o, delta, eta)
-    [~, col] = size(q);
-    force = zeros(1, col);
+function force = calRepulsive(cur_wp, o, delta, eta)
+    dim = getDimVec(cur_wp);
+    n_o = getNumVec(o);
+    force = zeros(dim, 1);
     for i=1:n_o
-        diff = q - o(i,:);
+        diff = cur_wp - getNthVec(o, i);
         norm_diff = norm(diff);
         if norm_diff < delta
             % case3
@@ -63,9 +64,32 @@ function h = calRotation(ax, ay, az, dx, dy, dz)
          zeros(1, 3), 1];
 end
 
+
 % Functions
+
+function rst = getNumVec(matrix)
+    [~, rst] = size(matrix);
+end
+
+function rst = getDimVec(matrix)
+    [rst, ~] = size(matrix);
+end
+
+function rst = getNthVec(matrix, n)
+    rst = matrix(:, n);
+end
+
+function rst = getNthDim(matrix, n)
+    rst = matrix(n, :);
+end
+
 function rst = isReached(a, b)
- rst = getDistance(a, b) < 0.5;
+ rst = true;
+ for i=1:3
+    if getDistance(getNthVec(a, i), getNthVec(b, i)) >= 0.1
+        rst = false;
+    end
+ end
 end
 
 function rst = getDistance(a, b)
@@ -73,11 +97,22 @@ function rst = getDistance(a, b)
 end
 
 % initializing
-cur_wp = [start; start; start] + vec_tri_point;
-goal_wp = [goal;goal;goal] + vec_tri_point;
+cur_wp = [start, start, start] + tri_vec;
+goal_wp = [goal, goal, goal] + tri_vec;
 h = calRotation(pi/6, pi/6, pi/6, 0, 0, 0);
-goal_wp = h * [goal_wp.'; ones(1,3)];
-goal_wp = goal_wp(1:3, :).';
+goal_wp = h * [goal_wp; ones(1,3)];
+goal_wp = goal_wp(1:3, :);
+
+
+% configuration point
+syms ax ay az dx dy dz;
+cur_cp = [0, 0, 0, 0, 0, 0]; % ax, ay, az, dx, dy, dz
+h = calRotation(ax, ay, az, dx, dy, dz);
+cur_wx = h * [cur_wp; ones(1,3)];
+cur_wx = cur_wx(1:3, :);
+x_jaco = {jacobian(getNthDim(cur_wx, 1), [ax, ay, az, dx, dy, dz]),...
+     jacobian(getNthDim(cur_wx, 2), [ax, ay, az, dx, dy, dz]),...
+     jacobian(getNthDim(cur_wx, 3), [ax, ay, az, dx, dy, dz])};
 
 % Configuration figure
 figure(1);
@@ -88,37 +123,29 @@ axis_max = 11;
 axis([-axis_max, axis_max, -axis_max, axis_max, -axis_max, axis_max]);
 hold on;
 
-[obstacles_size, ~] = size(obstacles);
+obstacles_size = getNumVec(obstacles);
 obstacle_dots = gobjects(1, obstacles_size);
+
 for i=1:obstacles_size
-    obstacle = obstacles(i, :);
+    obstacle = getNthVec(obstacles, i);
     obstacle_dots(i) = scatter3(obstacle(1), obstacle(2), obstacle(3), 100, 'r', 'filled');
 end
 
-cur_tri = fill3(cur_wp(:, 1), cur_wp(:, 2), cur_wp(:, 3), 'b');
-goal_tri = fill3(goal_wp(:, 1), goal_wp(:, 2), goal_wp(:, 3), 'g');
+cur_tri = fill3(getNthDim(cur_wp, 1), getNthDim(cur_wp, 2), getNthDim(cur_wp, 3), 'b');
+goal_tri = fill3(getNthDim(goal_wp, 1), getNthDim(goal_wp, 2), getNthDim(goal_wp, 3), 'g');
 
-% configuration point
-syms ax ay az dx dy dz;
-cur_cp = [0, 0, 0, 0, 0, 0]; % ax, ay, az, dx, dy, dz
-h = calRotation(ax, ay, az, dx, dy, dz);
-cur_wx = h * [cur_wp.'; ones(1,3)];
-cur_wx = cur_wx(1:3, :).';
-x_jaco = {jacobian(cur_wx(1,:), [ax, ay, az, dx, dy, dz]),...
-     jacobian(cur_wx(2,:), [ax, ay, az, dx, dy, dz]),...
-     jacobian(cur_wx(3,:), [ax, ay, az, dx, dy, dz])};
-
+% main loop
 while ~isReached(cur_wp, goal_wp)
     cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp));
-    set(cur_tri, 'XData', cur_wp(:, 1), 'YData', cur_wp(:, 2), 'ZData', cur_wp(:, 3));
+    set(cur_tri, 'XData', getNthDim(cur_wp, 1), 'YData', getNthDim(cur_wp, 2), 'ZData', getNthDim(cur_wp, 3));
     drawnow;
     
     force = zeros(6, 1);
     for i=1:3
         jaco = subs(x_jaco{i}, [ax, ay, az, dx, dy, dz], cur_cp);
-        force = force + jaco.' * calAttractive(cur_wp(i,:), goal_wp(i,:), epsilon, zeta).';
-        force = force + jaco.' * calRepulsive(cur_wp(i,:), obstacles, obstacles_size, delta, eta).';
-        force = vpa(force);
+        jaco = double(jaco);
+        force = force + jaco.' * calAttractive(getNthVec(cur_wp, i), getNthVec(goal_wp, i), epsilon, zeta);
+        force = force + jaco.' * calRepulsive(getNthVec(cur_wp, i), obstacles, delta, eta);
     end
     cur_cp = cur_cp + force.';
 end
