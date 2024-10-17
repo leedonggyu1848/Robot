@@ -2,14 +2,16 @@ clc;
 clear all;
 close all;
 
+% configuration values
 start = [-7, -7, -7].';
 goal = [7, 7, 7].';
-obstacles = [[1,2,3].', [4,10,-7].', [-6, -6, -6].', [-6, -3, -7].'];
+% obstacles = [[1,2,3].', [4,10,-7].', [-6, -6, -6].', [-6, -3, -7].'];
+obstacles = [[100, 100, 100].'];
 tri_vec = [[0, 3, 0].', [-1, 0, 0].', [1, 0, 0].'];
-epsilon = 0.05; % attractive distance
-zeta = 0.1;    % attractive tunning parameter
-delta = 0.05;   % repulsive distance
-eta = 0.05;     % repulsive tunning paramter
+epsilon = 1; % attractive distance
+zeta = 0.05;    % attractive tunning parameter
+delta = 0.5;   % repulsive distance
+eta = 0.03;     % repulsive tunning paramter
 
 
 % calculating force function
@@ -96,23 +98,24 @@ function rst = getDistance(a, b)
     rst = norm(a - b);
 end
 
-% initializing
-cur_wp = [start, start, start] + tri_vec;
-goal_wp = [goal, goal, goal] + tri_vec;
-h = calRotation(pi/6, pi/6, pi/6, 0, 0, 0);
+% initializing values
+syms ax ay az dx dy dz;
+% current
+cur_wp = tri_vec;
+h = calRotation(ax, ay, az, dx + start(1), dy + start(2), dz + start(3));
+cur_wx = h * [cur_wp; ones(1,3)];
+cur_wx = cur_wx(1:3, :);
+cur_cp = [0, 0, 0, 0, 0, 0]; % ax, ay, az, dx, dy, dz
+cur_wp =  double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp));
+x_jaco = {jacobian(getNthVec(cur_wx, 1), [ax, ay, az, dx, dy, dz]),...
+     jacobian(getNthVec(cur_wx, 2), [ax, ay, az, dx, dy, dz]),...
+     jacobian(getNthVec(cur_wx, 3), [ax, ay, az, dx, dy, dz])};
+% goal
+goal_wp = tri_vec;
+h = calRotation(pi/6, pi/6, pi/6, goal(1), goal(2), goal(3));
 goal_wp = h * [goal_wp; ones(1,3)];
 goal_wp = goal_wp(1:3, :);
 
-
-% configuration point
-syms ax ay az dx dy dz;
-cur_cp = [0, 0, 0, 0, 0, 0]; % ax, ay, az, dx, dy, dz
-h = calRotation(ax, ay, az, dx, dy, dz);
-cur_wx = h * [cur_wp; ones(1,3)];
-cur_wx = cur_wx(1:3, :);
-x_jaco = {jacobian(getNthDim(cur_wx, 1), [ax, ay, az, dx, dy, dz]),...
-     jacobian(getNthDim(cur_wx, 2), [ax, ay, az, dx, dy, dz]),...
-     jacobian(getNthDim(cur_wx, 3), [ax, ay, az, dx, dy, dz])};
 
 % Configuration figure
 figure(1);
@@ -132,14 +135,13 @@ for i=1:obstacles_size
 end
 
 cur_tri = fill3(getNthDim(cur_wp, 1), getNthDim(cur_wp, 2), getNthDim(cur_wp, 3), 'b');
-goal_tri = fill3(getNthDim(goal_wp, 1), getNthDim(goal_wp, 2), getNthDim(goal_wp, 3), 'g');
+fill3(getNthDim(goal_wp, 1), getNthDim(goal_wp, 2), getNthDim(goal_wp, 3), 'g');
 
 % main loop
-while ~isReached(cur_wp, goal_wp)
+while ~isReached(cur_wp, goal_wp) || true
     cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp));
     set(cur_tri, 'XData', getNthDim(cur_wp, 1), 'YData', getNthDim(cur_wp, 2), 'ZData', getNthDim(cur_wp, 3));
     drawnow;
-    
     force = zeros(6, 1);
     for i=1:3
         jaco = subs(x_jaco{i}, [ax, ay, az, dx, dy, dz], cur_cp);

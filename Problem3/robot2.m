@@ -2,7 +2,7 @@ clc;
 clear all;
 close all; 
 
-% parameter
+% configuration values
 cur = [0, 0].';
 goal = [8, 8].';
 ax = 2;
@@ -56,16 +56,19 @@ function rst = getDistance(a, b)
     rst = norm(a - b);
 end
 
+% initializing values
 syms x y theta;
+% current
+cur_wp = zeros(2,3);
 cur_wx = [[x, y].',...
      [x+ax*cos(theta),y+ax*sin(theta)].'...
      [x+ax*cos(theta)-ay*sin(theta), y+ax*sin(theta)+ay*cos(theta)].'];
-goal_wp = [[goal(1), goal(2)].', [goal(1), goal(2)+ax].', [goal(1)-ay, goal(2)+ax].'];
-cur_cp = [0,0,0]; % [x, y, theta]
 x_jaco = {jacobian(getNthVec(cur_wx, 1), [x,y,theta]),...
      jacobian(getNthVec(cur_wx, 2), [x,y,theta]),...
      jacobian(getNthVec(cur_wx, 3), [x,y,theta])};
-cur_wp = zeros(2,3);
+cur_cp = [0,0,0]; % [x, y, theta]
+% goal
+goal_wp = [[goal(1), goal(2)].', [goal(1), goal(2)+ax].', [goal(1)-ay, goal(2)+ax].'];
 
 % Configuration figure
 hfig = figure(1);
@@ -89,9 +92,10 @@ for i = 1:3
     set(dot_goals(i), 'XData', goal_wp(1, i), 'YData', goal_wp(2, i));
 end
 
-% calculate setting
+% main loop
 while ~isReached(cur_wp, goal_wp)
     cur_wp = double(subs(cur_wx, [x, y, theta], cur_cp));
+    
     for i = 1:3
         set(dot(i), 'XData', cur_wp(1, i), 'YData', cur_wp(2,i));
     end

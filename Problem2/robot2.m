@@ -51,7 +51,7 @@ plane = patch('Vertices', [[0,0,0]; [0,0,0]; [0,0,0]], ... % 세 점의 좌표
           'EdgeColor', 'k'); % 가장자리 색상
 
 cur = [0,0,0,0,0,0]; % az, ay, ax, dx, dy, dz
-tars = [0, 0, 3600, 20, 0, 0];
+tars = [0, 0, 3600, 0, 0, 0];
 [ros, cols] = size(tars);
 speed = 2;
 for t = 1:ros
