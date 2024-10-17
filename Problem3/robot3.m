@@ -5,13 +5,12 @@ close all;
 % configuration values
 start = [-7, -7, -7].';
 goal = [7, 7, 7].';
-% obstacles = [[1,2,3].', [4,10,-7].', [-6, -6, -6].', [-6, -3, -7].'];
-obstacles = [[100, 100, 100].'];
+obstacles = [[-4, -3, -4].', [-2, -1, -1].', [-6, -4, -6].', [3, 4, 5].'];
 tri_vec = [[0, 3, 0].', [-1, 0, 0].', [1, 0, 0].'];
 epsilon = 1; % attractive distance
 zeta = 0.05;    % attractive tunning parameter
-delta = 0.5;   % repulsive distance
-eta = 0.03;     % repulsive tunning paramter
+delta = 2;   % repulsive distance
+eta = 0.9;     % repulsive tunning paramter
 
 
 % calculating force function
@@ -138,8 +137,8 @@ cur_tri = fill3(getNthDim(cur_wp, 1), getNthDim(cur_wp, 2), getNthDim(cur_wp, 3)
 fill3(getNthDim(goal_wp, 1), getNthDim(goal_wp, 2), getNthDim(goal_wp, 3), 'g');
 
 % main loop
-while ~isReached(cur_wp, goal_wp) || true
-    cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp));
+while ~isReached(cur_wp, goal_wp)
+    cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp))
     set(cur_tri, 'XData', getNthDim(cur_wp, 1), 'YData', getNthDim(cur_wp, 2), 'ZData', getNthDim(cur_wp, 3));
     drawnow;
     force = zeros(6, 1);
