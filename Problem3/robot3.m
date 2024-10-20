@@ -138,7 +138,7 @@ fill3(getNthDim(goal_wp, 1), getNthDim(goal_wp, 2), getNthDim(goal_wp, 3), 'g');
 
 % main loop
 while ~isReached(cur_wp, goal_wp)
-    cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp))
+    cur_wp = double(subs(cur_wx, [ax, ay, az, dx, dy, dz], cur_cp));
     set(cur_tri, 'XData', getNthDim(cur_wp, 1), 'YData', getNthDim(cur_wp, 2), 'ZData', getNthDim(cur_wp, 3));
     drawnow;
     force = zeros(6, 1);
