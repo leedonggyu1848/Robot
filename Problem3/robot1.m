@@ -4,7 +4,7 @@ clc; clear all; close all;
 cur = [0, 0].';
 goal = [10, 10].';
 obstacles = [[6,4].', [4,6].', [6,6].'];
-epsilon = 0.5; % attractive distance
+epsilon = 1; % attractive distance
 zeta = 0.01;    % attractive tunning parameter
 delta = 3;   % repulsive distance
 eta = 0.03;     % repulsive tunning paramter
