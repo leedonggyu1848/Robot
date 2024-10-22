@@ -124,8 +124,8 @@ hfig = figure(1);
 grid on;
 axis equal;
 view(3);
-axis_max = link_length * 3;
-axis([-axis_max, axis_max, -axis_max, axis_max, -axis_max, axis_max]);
+axis_max = 10;
+axis([-axis_max, axis_max, -axis_max, axis_max, 0, 8]);
 hold on;
 
 dots = gobjects(1, 4);

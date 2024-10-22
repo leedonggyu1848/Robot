@@ -5,9 +5,9 @@ cur = [0, 0].';
 goal = [10, 10].';
 obstacles = [[6,4].', [4,6].', [6,6].'];
 epsilon = 1; % attractive distance
-zeta = 0.01;    % attractive tunning parameter
+zeta = 0.03;    % attractive tunning parameter
 delta = 3;   % repulsive distance
-eta = 0.03;     % repulsive tunning paramter
+eta = 0.2;     % repulsive tunning paramter
 
 % calculate force function
 function force = cal_attractive(cur_wp, goal_wp, epsilon, zeta)
