@@ -37,6 +37,14 @@ classdef Utils
             rst = norm(goal - start);
         end
 
+        function rst = calDirection(start, goal)
+            % start에서 goal까지의 방향을 계산
+            % start: [x, y]
+            % goal: [x, y]
+
+            rst = (goal - start) / norm(goal - start);
+        end
+
         function rst = calDistanceLine(start, goal, point)
             % start에서 goal로 이동하는 선분과 point 사이의 거리를 계산
             % start: [x, y]

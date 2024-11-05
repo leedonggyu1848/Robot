@@ -52,6 +52,8 @@ for i = 1 : sample_size
         valid_samples(i) = false;
     end
 end
+valid_samples = samples(:, valid_samples);
+valid_samples_size = Utils.getNumVec(valid_samples)
 
 function rst = isConnectableInConfig(start, goal, robot, obstacle)
     step = 0.1;
@@ -68,10 +70,8 @@ function rst = isConnectableInConfig(start, goal, robot, obstacle)
     end
 end
 
-valid_samples = samples(:, valid_samples);
-valid_samples_size = Utils.getNumVec(valid_samples)
 adjust_matrix = false(valid_samples_size, valid_samples_size);
-tree = KDTree(valid_samples);
+tree = KDTree(valid_samples, 1:valid_samples_size);
 for i = 1:valid_samples_size
     adjust_matrix(i, i) = true;
     if mod(i, 1000) == 0
