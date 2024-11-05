@@ -36,7 +36,7 @@ classdef LinkRobot
 			% config: [th1, th2, th3]
 
 			obj.link_length = link_length;
-			obj.dot_size = size(config, 2) + 1;
+			obj.dot_size = size(config, 1) + 1;
 			obj.dots = [];
 			obj.a = {};
 
@@ -87,6 +87,5 @@ classdef LinkRobot
 				set(obj.g_links(i), 'XData', Utils.getNthDim(link, 1), 'YData', Utils.getNthDim(link, 2));
 			end
 		end
-
 	end
 end

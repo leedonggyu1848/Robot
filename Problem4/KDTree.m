@@ -22,18 +22,18 @@ classdef KDTree
                 obj.axis = [];
                 obj.index = [];
             else
-                [dim, numPoints] = size(points);
+                [dim, num_points] = size(points);
                 dim = dim - 1;
                 % 분할 축 선택
                 axis = mod(depth, dim) + 1;
                 % 정렬하여 중간값을 선택
                 sorted_points = sortrows(points.', axis).';
-                medianIndex = floor(numPoints / 2) + 1;
-                obj.point = sorted_points(1:dim, medianIndex);
+                median_index = floor(num_points / 2) + 1;
+                obj.point = sorted_points(1:dim, median_index);
                 obj.axis = axis;
-                obj.index = sorted_points(dim+1, medianIndex);
-                obj.left = KDTree(all_points, depth+1, sorted_points(:, 1:medianIndex-1));
-                obj.right = KDTree(all_points, depth+1, sorted_points(:, medianIndex+1:end));
+                obj.index = sorted_points(dim+1, median_index);
+                obj.left = KDTree(all_points, depth+1, sorted_points(:, 1:median_index-1));
+                obj.right = KDTree(all_points, depth+1, sorted_points(:, median_index+1:end));
             end
         end
 
