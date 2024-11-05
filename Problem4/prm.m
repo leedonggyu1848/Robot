@@ -19,7 +19,6 @@ axis([coord_min(1), coord_max(1), coord_min(2), coord_max(2)]);
 
 robot = LinkRobot(start_pos, [0, 0, 0], link_length);
 obstacle = Obstacle(obstacles_pos, obstacle_length, [-10, 10], [0, 16]);
-robot.draw;
 drawnow;
 
 % generate samples
@@ -99,11 +98,7 @@ end
 path = shortestpath(G, src, tar);
 dist(src, tar)
 for i = 1:Utils.getNumVec(path) - 1
-    Utils.getNthVec(valid_samples, path(i))
-    robot = robot.update(Utils.getNthVec(valid_samples, path(i)));
-    robot.draw;
-    drawnow;
-    pause
+    robot = robot.move(...
+        Utils.getNthVec(valid_samples, path(i)),...
+        Utils.getNthVec(valid_samples, path(i+1)));
 end
-
-% TODO: 근처에 n개의 점을 찾는 것으로 변경 고려
