@@ -5,20 +5,20 @@ global step;
 global pos_size;
 
 % 설정 값
-pos_size = [10, 10]; % x, y
-doors_pos = [1, 1; 4, 4; 8, 8].';
+pos_size = [15, 15]; % x, y
+doors_pos = [1, 1; 6, 6; 10, 10].';
 epsilon = 0.00001;
 step = 1;
 % 0: left, 1: right, 2: up, 3: down
-actions = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
+actions = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
 
 % 기본 값 정의
 doors_size = size(doors_pos, 2);
 
 function rst = gausian(pos_size, mu, sigma)
-	[x, y] = meshgrid(1:1:pos_size(1), 1:1:pos_size(2));
+	[x, y] = meshgrid(0:pos_size(1), 0:pos_size(2));
 	pdf = mvnpdf([x(:), y(:)], mu, sigma);
-	rst = reshape(pdf, pos_size);
+	rst = reshape(pdf, pos_size + 1);
 end
 
 function rst = cvt_action(action)
@@ -34,8 +34,8 @@ function rst = cvt_action(action)
 end
 
 % measuremetn model 정의 -> p(z|x)
-measurement_model = zeros(pos_size);
-sigma = [1, 0.5; 0.5, 1];
+measurement_model = zeros(pos_size+1);
+sigma = [0.5, 0; 0, 0.5];
 for i = 1:doors_size
 	door_pos = doors_pos(:, i);
 	pdf = gausian(pos_size, door_pos.', sigma);
@@ -55,10 +55,12 @@ function rst = next_belief(prev_belief, measurement_model, sensored, action)
 	end
 
 	dir = cvt_action(action);
-	sigma = [0.5, 0; 0, 0.5];
+	sigma = [0.2, 0; 0, 0.2];
+	center = floor(position_size/2);
+	move_noise = gausian(position_size, center+dir*step, sigma);
 
-	move_noise = gausian(position_size, floor([10, 10]/2)+1 +dir * step, sigma);
-	rst = conv2(move_noise, prev_belief, 'same');
+	rst = conv2(prev_belief, move_noise, 'same');
+	size(rst)
 	rst = rst + epsilon;
 	rst = rst.*z_given_x;
 	rst = rst / sum(rst(:));
@@ -80,7 +82,7 @@ function plot_figure(doors_pos, true_pos, z_given_x, belief)
 	% 두 번째 플롯 (P(z|s))
 	subplot(1, 3, 2);
 	axis equal; hold on; grid on;
-	contour([0:pos_size(1)-1], [0:pos_size(2)-1], z_given_x);
+	contour(0:pos_size(1), 0:pos_size(2), z_given_x);
 	xlim([0, pos_size(1)]);
 	ylim([0, pos_size(2)]);
 	title('P(z|s)');
@@ -88,14 +90,14 @@ function plot_figure(doors_pos, true_pos, z_given_x, belief)
 	% 세 번째 플롯 (Belief)
 	subplot(2, 3, 3);
 	axis equal; hold on; grid on;
-	contour([0:pos_size(1)-1], [0:pos_size(2)-1], belief);
+	contour(0:pos_size(1), 0:pos_size(2), belief);
 	xlim([0, pos_size(1)]);
 	ylim([0, pos_size(2)]);
 	title('Belief');
 
 	subplot(2, 3, 6);
 	axis equal; grid on;
-	surf([0:pos_size(1)-1], [0:pos_size(2)-1], belief);
+	surf(0:pos_size(1), 0:pos_size(2), belief);
 	xlim([0, pos_size(1)]);
 	ylim([0, pos_size(2)]);
 	zlim([0, 0.5]);
@@ -103,7 +105,7 @@ function plot_figure(doors_pos, true_pos, z_given_x, belief)
 
 end
 
-belief = ones(pos_size) * epsilon;
+belief = ones(pos_size+1) * epsilon;
 true_pos = [0, 0].';
 plot_figure(doors_pos, true_pos, measurement_model, belief);
 for i = 1:size(actions, 2)
@@ -113,5 +115,5 @@ for i = 1:size(actions, 2)
 	sensored = sum(sum(doors_pos == true_pos) == 2) > 0;
 	belief = next_belief(belief, measurement_model, sensored, action);
 	plot_figure(doors_pos, true_pos, measurement_model, belief);
-	pause(0.5);
+	pause(0.3);
 end

@@ -15,7 +15,7 @@ doors_size = size(doors_pos, 2);
 % measuremetn model 정의 -> p(z|x)
 measurement_model = zeros(1, pos_size);
 for i = 1:doors_size
-	measurement_model = measurement_model + normpdf(1:pos_size, doors_pos(i), 1);
+	measurement_model = measurement_model + normpdf(0:pos_size-1, doors_pos(i), 1);
 end
 measurement_model = measurement_model / sum(measurement_model);
 
@@ -25,8 +25,9 @@ function rst = next_belief(prev_belief, measurement_model, sensored)
 	global step;
 
 	position_size = size(prev_belief, 2);
-	% step: 로봇이 한번에 움직이는 거리, 1: index가 1부터 시작하여 +1
-	move_noise = normpdf(1:position_size, floor(position_size/2)+1+step, 0.5);
+	center = floor(position_size/2);
+	% step: 로봇이 한번에 움직이는 거리
+	move_noise = normpdf(0:position_size-1, center+step, 0.5);
 
 	if sensored == 1
 		z_given_x = measurement_model;
@@ -34,9 +35,9 @@ function rst = next_belief(prev_belief, measurement_model, sensored)
 		z_given_x = 1 - measurement_model;
 	end
 
-	rst = conv(move_noise, prev_belief, 'same');
+	rst = conv(prev_belief, move_noise, 'full');
+	rst = [sum(rst(1:center+1)), rst(center+2:center+position_size-1), sum(rst(center+position_size:end))];
 	rst = rst + epsilon;
-	pause
 	rst = rst.*z_given_x;
 	rst = rst / sum(rst);
 end
@@ -58,18 +59,17 @@ function plot_figure(doors_pos, true_pos, z_given_x, belief)
 
 	% 두 번째 서브플롯: 센서 모델 p(z|x)
 	subplot(3, 1, 2);
-	plot(z_given_x, 'r', 'LineWidth', 2);
+	plot(0: pos_size-1, z_given_x, 'r', 'LineWidth', 2);
 	xlim([0 pos_size]);
 	ylim([0 0.5]);
 	title('p(z|x)');
 
 	% 세 번째 서브플롯: 확률 분포 bel(x)
 	subplot(3, 1, 3);
-	plot(belief, 'b', 'LineWidth', 2);
+	plot(0:pos_size-1, belief, 'b', 'LineWidth', 2);
 	xlim([0 pos_size]);
-	ylim([0 1]);
+	ylim([0 0.5]);
 	title('bel(x)');
-
 	drawnow;
 end
 
