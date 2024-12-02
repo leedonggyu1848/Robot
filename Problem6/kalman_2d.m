@@ -7,9 +7,6 @@ pos_size = [15, 15]; % x, y
 doors_pos = [1, 1; 6, 6; 10, 10].';
 actions = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
 
-% 초기값 설정
-x = [0; 0]; % 초기 위치 [x_0; y_0]
-P = 0.01 * eye(2); % 초기 분산 (2x2 공분산 행렬)
 
 % 예측 단계
 function [next_x, next_P] = prediction_step(x, P, G, F, V, u)
@@ -20,7 +17,7 @@ end
 % 보정 단계
 function [next_x, next_P] = correction_step(x, P, z, H, W)
     S = H*P*H' + W;
-    R = P*H'/S; % 칼만 이득
+    R = P*H'/S;
     next_x = x + R*(z - H*x);
     next_P = (eye(size(P)) - R*H)*P;
 end
@@ -79,18 +76,23 @@ function plot_figure(doors_pos, true_pos, belief)
 	drawnow;
 end
 
+
+% 초기값 설정
+x = [0; 0]; % 초기 위치 [x_0; y_0]
+P = 0.01 * eye(2); % 초기 분산 (2x2 공분산 행렬)
+
 % 초기 분포
 belief = gausian(pos_size, x, P);
 true_pos = [0; 0];
 plot_figure(doors_pos, true_pos, belief);
 
 % 칼만 필터 설정
-G = eye(2);     % 제어 입력 계수 (2x2)
-F = eye(2);     % 상태 전이 계수 (2x2)
-V = 0.5 * eye(2); % 프로세스 잡음 분산 (2x2)
-H = eye(2);     % 관측 모델 계수 (2x2)
-W = 0.5 * eye(2); % 관측 잡음 분산 (2x2)
-u = [0; 0];     % 제어 입력 (x, y 방향 각각 한 칸씩 이동)
+G = eye(2);
+F = eye(2);
+V = 0.5 * eye(2);
+H = eye(2);
+W = 0.5 * eye(2);
+u = [0; 0];
 
 % 시뮬레이션
 for i = 1:size(actions, 2)
@@ -105,8 +107,7 @@ for i = 1:size(actions, 2)
         [x, P] = correction_step(x, P, true_pos, H, W);
     end
 
-    % 확률 분포 업데이트
 	belief = gausian(pos_size, x, P);
     plot_figure(doors_pos, true_pos, belief);
-    pause(0.1);
+    pause(0.05);
 end

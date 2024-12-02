@@ -7,15 +7,13 @@ pos_size = 100;
 doors_pos = [10, 30, 60, 80];
 step = 1;
 
-% initial value
-x = 0; % 위치 x_0
-P = 0.01; % 위치의 분산 P_0
-
+% 예측 단계
 function [next_x, next_P] = prediction_step(x, P, G, F, V, u)
 	next_x = F*x + G*u;
 	next_P = F*P*F' + V;
 end
 
+% 보정 단계
 % prediction에서 계산한 next_x, next_P를 이용하여 update step을 수행
 function [next_x, next_P] = correction_step(x, P, z, H, W)
 	S = H*P*H' + W;
@@ -48,16 +46,22 @@ function plot_figure(doors_pos, true_pos, belief)
 	drawnow;
 end
 
+
+% initial value
+x = 0;      % 위치 x_0
+P = 0.01;   % 위치의 분산 P_0
+
 belief = normpdf(0:pos_size-1, x, sqrt(P));
 true_pos = 0;
 plot_figure(doors_pos, true_pos, belief);
 
-G = 1;        % 제어 입력 계수
-F = 1;        % 상태 전이 계수
-V = 0.5;     % 프로세스 잡음 분산
-H = 1;        % 관측 모델 계수
-W = 0.5;      % 관측 잡음 분산
-u = 1;        % 제어 입력 (한 칸씩 이동)
+% 칼만 필터 설정
+G = 1;
+F = 1;
+V = 0.5;
+H = 1;
+W = 0.5;
+u = 1;
 
 for i = 1:pos_size
 	true_pos = true_pos + step;
@@ -68,5 +72,5 @@ for i = 1:pos_size
 	end
 	belief = normpdf(0:pos_size-1, x, sqrt(P));
 	plot_figure(doors_pos, true_pos, belief);
-	pause(0.1);
+	pause(0.05);
 end
